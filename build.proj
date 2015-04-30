@@ -147,7 +147,12 @@
       <TestAssemblies
         Include="$(NervenTestAssembliesInclude)" />
     </ItemGroup>
-    <xunit Assemblies="@(TestAssemblies)" />
+    <MakeDir
+      Condition="!Exists('$(NervenSolutionDir)\output\xunit')"
+      Directories="$(NervenSolutionDir)\output\xunit" />
+    <xunit
+      Assemblies="@(TestAssemblies)"
+      Xml="$(NervenSolutionDir)\output\xunit\%(TestAssemblies.Filename).xml" />
   </Target>
   <Target Name="PackNuget">
     <ItemGroup>
