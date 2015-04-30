@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{C08BBE6B-FD73-4623-B05E-67A0B26040C2}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Nerven.Bygge", "source\Nerven.Bygge\Nerven.Bygge.shproj", "{91FCBEF5-951F-40E7-9C40-E67CEF4AC96E}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		source\Nerven.Bygge\Nerven.Bygge.projitems*{91fcbef5-951f-40e7-9c40-e67cef4ac96e}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{91FCBEF5-951F-40E7-9C40-E67CEF4AC96E} = {C08BBE6B-FD73-4623-B05E-67A0B26040C2}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project
+  ToolsVersion="12.0"
+  InitialTargets="Init"
+  DefaultTargets="Nothing"
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <NervenSolutionDir
+      Condition="$(NervenSolutionDir) == '' OR $(NervenSolutionDir) == '*Undefined*'">$(MSBuildProjectDirectory)</NervenSolutionDir>
+    <NervenSolutionFile
+      Condition="$(NervenSolutionFile) == '' OR $(NervenSolutionFile) == '*Undefined*'">$(MSBuildProjectName)</NervenSolutionFile>
+    <ByggeBuildDir
+      Condition="$(ByggeBuildDir) == '' OR $(ByggeBuildDir) == '*Undefined*'">$(MSBuildProjectDirectory)</ByggeBuildDir>
+  </PropertyGroup>
+  <Target Name="Init">
+    <Message Text="NervenSolutionDir: $(NervenSolutionDir);" />
+    <Message Text="NervenSolutionFile: $(NervenSolutionFile);" />
+    <Message Text="ByggeBuildDir: $(ByggeBuildDir);" />
+  </Target>
+  <Target Name="Reset">
+    <ItemGroup>
+      <ByggeSolutionRootFiles Include="$(ByggeBuildDir)\assets\build.*" />
+      <ByggeSolutionRootFiles Include="$(ByggeBuildDir)\assets\Nerven.DotSettings" />
+      <ByggeSolutionRootFiles Include="$(ByggeBuildDir)\assets\Settings.StyleCop" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(ByggeSolutionRootFiles)"
+      DestinationFolder="$(NervenSolutionDir)"
+      OverwriteReadOnlyFiles="true" />
+    <Copy
+      Condition="!Exists('$(NervenSolutionDir)\.gitignore')"
+      SourceFiles="$(ByggeBuildDir)\assets\gitignore"
+      DestinationFiles="$(NervenSolutionDir)\.gitignore" />
+    <Copy
+      Condition="!Exists('$(NervenSolutionDir)\$(NervenSolutionFile).DotSettings')"
+      SourceFiles="$(ByggeBuildDir)\assets\Nerven.sln.DotSettings"
+      DestinationFiles="$(NervenSolutionDir)\$(NervenSolutionFile).DotSettings" />
+    <Copy
+      SourceFiles="$(ByggeBuildDir)\assets\NuGet.targets"
+      DestinationFiles="$(NervenSolutionDir)\.nuget\NuGet.targets"
+      OverwriteReadOnlyFiles="true" />
+  </Target>
+  <Target Name="Nothing">
+  </Target>
+</Project>
