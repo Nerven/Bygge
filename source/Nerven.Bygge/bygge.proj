@@ -35,10 +35,6 @@
       Condition="!Exists('$(NervenSolutionDir)\$(NervenSolutionFile).DotSettings')"
       SourceFiles="$(ByggeBuildDir)\assets\Nerven.sln.DotSettings"
       DestinationFiles="$(NervenSolutionDir)\$(NervenSolutionFile).DotSettings" />
-    <Copy
-      SourceFiles="$(ByggeBuildDir)\assets\NuGet.targets"
-      DestinationFiles="$(NervenSolutionDir)\.nuget\NuGet.targets"
-      OverwriteReadOnlyFiles="true" />
   </Target>
   <Target Name="Nothing">
   </Target>

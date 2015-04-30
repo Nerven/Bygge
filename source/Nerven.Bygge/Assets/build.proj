@@ -17,6 +17,10 @@
       Condition="$(NervenSolutionFile) == '' OR $(NervenSolutionFile) == '*Undefined*'">$(NervenSolutionDir)\$(NervenSolutionName).sln</NervenSolutionFile>
     <NervenSolutionVersion
       Condition="$(NervenSolutionVersion) == '' OR $(NervenSolutionVersion) == '*Undefined*'">0.0.0</NervenSolutionVersion>
+    <NervenNuGetExe
+      Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NuGetToolPath)</NervenNuGetExe>
+    <NervenNuGetExe
+      Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NervenSolutionDir)\packages\NuGet.exe</NervenNuGetExe>
     <NervenByggeVersion
       Condition="$(NervenByggeVersion) == '' OR $(NervenByggeVersion) == '*Undefined*'">auto</NervenByggeVersion>
     <NervenXunitMsbuildRunnerVersion
@@ -26,10 +30,43 @@
     <NervenTestAssembliesInclude
       Condition="$(NervenTestAssembliesInclude) == '' OR $(NervenTestAssembliesInclude) == '*Undefined*'">$(NervenSolutionDir)\tests\**\bin\$(NervenConfiguration)\$(NervenSolutionName).Tests*.dll</NervenTestAssembliesInclude>
     <NervenInstallByggeNugetPackageCommand
-      Condition="$(NervenInstallByggeNugetPackageCommand) == '' OR $(NervenInstallByggeNugetPackageCommand) == '*Undefined*'">&quot;$(NervenSolutionDir)\.nuget\NuGet.exe&quot; install Nerven.Bygge -pre -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallByggeNugetPackageCommand>
+      Condition="$(NervenInstallByggeNugetPackageCommand) == '' OR $(NervenInstallByggeNugetPackageCommand) == '*Undefined*'">&quot;$(NervenNuGetExe)&quot; install Nerven.Bygge -pre -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallByggeNugetPackageCommand>
     <NervenInstallXunitNugetPackageCommand
-      Condition="($(NervenInstallXunitNugetPackageCommand) == '' OR $(NervenInstallXunitNugetPackageCommand) == '*Undefined*') and $(NervenByggeVersion) == 'auto'">&quot;$(NervenSolutionDir)\.nuget\NuGet.exe&quot; install xunit.runner.msbuild -pre -version &quot;$(NervenXunitMsbuildRunnerVersion)&quot; -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallXunitNugetPackageCommand>
+      Condition="($(NervenInstallXunitNugetPackageCommand) == '' OR $(NervenInstallXunitNugetPackageCommand) == '*Undefined*') and $(NervenByggeVersion) == 'auto'">&quot;$(NervenNuGetExe)&quot; install xunit.runner.msbuild -pre -version &quot;$(NervenXunitMsbuildRunnerVersion)&quot; -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallXunitNugetPackageCommand>
   </PropertyGroup>
+  <!-- Inline task to bootstrap the build to enable downloading nuget.exe -->
+  <!-- from https://github.com/Microsoft/msbuild/blob/master/dir.targets -->
+  <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <Address ParameterType="System.String" Required="true"/>
+      <FileName ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System" />
+      <Reference Include="System.IO" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            var directory = System.IO.Path.GetDirectoryName(FileName);
+            Directory.CreateDirectory(directory);
+            var tempFile = Path.Combine(directory, Path.GetRandomFileName());
+            var client = new System.Net.WebClient();
+            client.Proxy = System.Net.WebRequest.DefaultWebProxy;
+            client.Proxy.Credentials = System.Net.CredentialCache.DefaultCredentials;
+            client.DownloadFile(Address, tempFile);
+            try
+            {
+                if (!File.Exists(FileName))
+                   File.Move(tempFile, FileName);
+            }
+            finally
+            {
+              if (File.Exists(tempFile))
+                  File.Delete(tempFile);
+            }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
   <Import
     Condition="Exists('$(NervenXunitMsbuildRunnerBuildDir)\xunit.runner.msbuild.props')"
     Project="$(NervenXunitMsbuildRunnerBuildDir)\xunit.runner.msbuild.props" />
@@ -45,15 +82,16 @@
     <Message Text="NervenTestAssembliesInclude: $(NervenTestAssembliesInclude);" />
   </Target>
   <Target Name="RestoreNuget">
-    <MSBuild
-      Projects="$(NervenSolutionDir)\.nuget\NuGet.targets"
-      Targets="CheckPrerequisites" />
+    <DownloadFile
+      Condition="!Exists('$(NervenNuGetExe)')"
+      FileName="$(NervenNuGetExe)"
+      Address="https://nuget.org/nuget.exe" />
     <Exec
       Command="$(NervenInstallByggeNugetPackageCommand)" />
     <Exec
       Command="$(NervenInstallXunitNugetPackageCommand)" />
     <Exec
-      Command="&quot;$(NervenSolutionDir)\.nuget\NuGet.exe&quot; restore &quot;$(NervenSolutionFile)&quot;" />
+      Command="&quot;$(NervenNuGetExe)&quot; restore &quot;$(NervenSolutionFile)&quot;" />
   </Target>
   <Target Name="ResetBygge"
     DependsOnTargets="ExtendedClean;RestoreNuget">
@@ -81,8 +119,6 @@
       Targets="Build" />
   </Target>
   <Target Name="ExtendedClean">
-    <Delete
-      Files="$(NervenSolutionDir)\.nuget\NuGet.exe" />
     <RemoveDir
       Directories="$(NervenSolutionDir)\packages" />
     <MSBuild BuildInParallel="true"
@@ -127,7 +163,7 @@
       Condition="!Exists('$(NervenSolutionDir)\output\nuget')"
       Directories="$(NervenSolutionDir)\output\nuget" />
     <Exec
-      Command="&quot;$(NervenSolutionDir)\.nuget\NuGet.exe&quot; pack &quot;%(NervenNugetPackEntryFiles.PackFile)&quot; -NonInteractive -IncludeReferencedProjects -NoDefaultExcludes -Symbols -Properties Configuration=&quot;$(NervenConfiguration)&quot; -OutputDirectory &quot;$(NervenSolutionDir)\output\nuget\ &quot; -Version $(NervenSolutionVersion)" />
+      Command="&quot;$(NervenNuGetExe)&quot; pack &quot;%(NervenNugetPackEntryFiles.PackFile)&quot; -NonInteractive -IncludeReferencedProjects -NoDefaultExcludes -Symbols -Properties Configuration=&quot;$(NervenConfiguration)&quot; -OutputDirectory &quot;$(NervenSolutionDir)\output\nuget\ &quot; -Version $(NervenSolutionVersion)" />
   </Target>
   <Target Name="Complete"
     DependsOnTargets="Clean;Build;Test;PackNuget" />
