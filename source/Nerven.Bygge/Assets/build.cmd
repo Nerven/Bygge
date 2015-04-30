@@ -17,10 +17,10 @@ if not defined NERVENSOLUTIONNAME (for %%F in (*.sln) do set NERVENSOLUTIONNAME=
 echo Using solution name: %NERVENSOLUTIONNAME%
 
 if not defined NERVENSOLUTIONVERSION (set NERVENSOLUTIONVERSION=%~2)
-echo Using MSBuild version: %NERVENSOLUTIONVERSION%
+echo Using version: %NERVENSOLUTIONVERSION%
 
 if not defined NERVENMSBUILDTARGET (set NERVENMSBUILDTARGET=%~1)
-echo Using MSBuild target: %NERVENMSBUILDTARGET%
+echo Using target: %NERVENMSBUILDTARGET%
 
 if defined NERVENMSBUILDTARGET (set _targetArgument=/target:"%NERVENMSBUILDTARGET%")
 "%NERVENMSBUILDCMD%" "%NERVENBUILDFILE%" %_targetArgument%
