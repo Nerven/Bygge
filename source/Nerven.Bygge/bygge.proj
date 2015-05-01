@@ -19,6 +19,7 @@
   </Target>
   <Target Name="Reset">
     <ItemGroup>
+      <ByggeSolutionRootFiles Include="$(ByggeBuildDir)\assets\appveyor.yml" />
       <ByggeSolutionRootFiles Include="$(ByggeBuildDir)\assets\build.*" />
       <ByggeSolutionRootFiles Include="$(ByggeBuildDir)\assets\Nerven.DotSettings" />
       <ByggeSolutionRootFiles Include="$(ByggeBuildDir)\assets\Settings.StyleCop" />
