@@ -9,6 +9,14 @@
       Condition="$(NervenConfiguration) == '' OR $(NervenConfiguration) == '*Undefined*'">$(Configuration)</NervenConfiguration>
     <NervenConfiguration
       Condition="$(NervenConfiguration) == '' OR $(NervenConfiguration) == '*Undefined*'">Release</NervenConfiguration>
+    <NervenPlatform
+      Condition="$(NervenPlatform) == '' OR $(NervenPlatform) == '*Undefined*'">$(Platform)</NervenPlatform>
+    <NervenPlatform
+      Condition="$(NervenPlatform) == '' OR $(NervenPlatform) == '*Undefined*'">Any CPU</NervenPlatform>
+    <NervenPlatformForNuget
+      Condition="($(NervenPlatformForNuget) == '' OR $(NervenPlatformForNuget) == '*Undefined*') AND $(NervenPlatform) == 'Any CPU'">AnyCPU</NervenPlatformForNuget>
+    <NervenPlatformForNuget
+      Condition="$(NervenPlatformForNuget) == '' OR $(NervenPlatformForNuget) == '*Undefined*'">$(NervenPlatform)</NervenPlatformForNuget>
     <NervenSolutionDir
       Condition="$(NervenSolutionDir) == '' OR $(NervenSolutionDir) == '*Undefined*'">$(MSBuildProjectDirectory)</NervenSolutionDir>
     <NervenSolutionName
@@ -72,6 +80,8 @@
     Project="$(NervenXunitMsbuildRunnerBuildDir)\xunit.runner.msbuild.props" />
   <Target Name="Init">
     <Message Text="NervenConfiguration: $(NervenConfiguration);" />
+    <Message Text="NervenPlatform: $(NervenPlatform);" />
+    <Message Text="NervenPlatformForNuget: $(NervenPlatformForNuget);" />
     <Message Text="NervenSolutionDir: $(NervenSolutionDir);" />
     <Message Text="NervenSolutionName: $(NervenSolutionName);" />
     <Message Text="NervenSolutionFile: $(NervenSolutionFile);" />
@@ -115,7 +125,7 @@
     DependsOnTargets="RestoreNuget">
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
-      Properties="Configuration=$(NervenConfiguration);RestorePackages=false;TreatWarningsAsErrors=true"
+      Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
       Targets="Build" />
   </Target>
   <Target Name="ExtendedClean">
@@ -123,20 +133,20 @@
       Directories="$(NervenSolutionDir)\packages" />
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
-      Properties="Configuration=$(NervenConfiguration);RestorePackages=false"
+      Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false"
       Targets="Clean" />
   </Target>
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
-      Properties="Configuration=$(NervenConfiguration);RestorePackages=false"
+      Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false"
       Targets="Clean" />
   </Target>
   <Target Name="Rebuild"
     DependsOnTargets="Clean;RestoreNuget">
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
-      Properties="Configuration=$(NervenConfiguration);RestorePackages=false;TreatWarningsAsErrors=true"
+      Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
       Targets="Rebuild" />
   </Target>
   <Target Name="Test">
@@ -168,7 +178,7 @@
       Condition="!Exists('$(NervenSolutionDir)\output\nuget')"
       Directories="$(NervenSolutionDir)\output\nuget" />
     <Exec
-      Command="&quot;$(NervenNuGetExe)&quot; pack &quot;%(NervenNugetPackEntryFiles.PackFile)&quot; -NonInteractive -IncludeReferencedProjects -NoDefaultExcludes -Symbols -Properties Configuration=&quot;$(NervenConfiguration)&quot; -OutputDirectory &quot;$(NervenSolutionDir)\output\nuget\ &quot; -Version $(NervenSolutionVersion)" />
+      Command="&quot;$(NervenNuGetExe)&quot; pack &quot;%(NervenNugetPackEntryFiles.PackFile)&quot; -NonInteractive -IncludeReferencedProjects -NoDefaultExcludes -Symbols -Properties &quot;Configuration=$(NervenConfiguration);Platform=$(NervenPlatformForNuget)&quot; -OutputDirectory &quot;$(NervenSolutionDir)\output\nuget\ &quot; -Version $(NervenSolutionVersion)" />
   </Target>
   <Target Name="Complete"
     DependsOnTargets="Clean;Build;Test;PackNuget" />
