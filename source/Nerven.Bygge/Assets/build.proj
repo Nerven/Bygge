@@ -86,10 +86,12 @@
     <Message Text="NervenSolutionName: $(NervenSolutionName);" />
     <Message Text="NervenSolutionFile: $(NervenSolutionFile);" />
     <Message Text="NervenSolutionVersion: $(NervenSolutionVersion);" />
+    <Message Text="NervenNuGetExe: $(NervenNuGetExe);" />
     <Message Text="NervenByggeVersion: $(NervenByggeVersion);" />
     <Message Text="NervenXunitMsbuildRunnerVersion: $(NervenXunitMsbuildRunnerVersion);" />
     <Message Text="NervenXunitMsbuildRunnerBuildDir: $(NervenXunitMsbuildRunnerBuildDir);" />
     <Message Text="NervenTestAssembliesInclude: $(NervenTestAssembliesInclude);" />
+    <Message Text="NervenInstallXunitNugetPackageCommand: $(NervenInstallXunitNugetPackageCommand);" />
   </Target>
   <Target Name="RestoreNuget">
     <DownloadFile
