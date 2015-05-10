@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project
   ToolsVersion="12.0"
-  InitialTargets="Init"
-  DefaultTargets="Nothing"
+  InitialTargets="EchoEnvironment"
   xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <NervenSolutionDir
@@ -12,7 +11,7 @@
     <ByggeBuildDir
       Condition="$(ByggeBuildDir) == '' OR $(ByggeBuildDir) == '*Undefined*'">$(MSBuildProjectDirectory)</ByggeBuildDir>
   </PropertyGroup>
-  <Target Name="Init">
+  <Target Name="EchoEnvironment">
     <Message Text="NervenSolutionDir: $(NervenSolutionDir);" />
     <Message Text="NervenSolutionFile: $(NervenSolutionFile);" />
     <Message Text="ByggeBuildDir: $(ByggeBuildDir);" />
@@ -36,7 +35,5 @@
       Condition="!Exists('$(NervenSolutionDir)\$(NervenSolutionFile).DotSettings')"
       SourceFiles="$(ByggeBuildDir)\assets\Nerven.sln.DotSettings"
       DestinationFiles="$(NervenSolutionDir)\$(NervenSolutionFile).DotSettings" />
-  </Target>
-  <Target Name="Nothing">
   </Target>
 </Project>
