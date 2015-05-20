@@ -9,6 +9,7 @@
     <Import_RootNamespace>Nerven.Bygge</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Assets\appveyor.yml" />
     <None Include="$(MSBuildThisFileDirectory)Assets\build.cmd" />
     <None Include="$(MSBuildThisFileDirectory)Assets\build.complete.cmd" />
     <None Include="$(MSBuildThisFileDirectory)Assets\build.proj" />
@@ -16,7 +17,6 @@
     <None Include="$(MSBuildThisFileDirectory)Assets\gitignore" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Nerven.DotSettings" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Nerven.sln.DotSettings" />
-    <None Include="$(MSBuildThisFileDirectory)Assets\NuGet.targets" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Settings.StyleCop" />
     <None Include="$(MSBuildThisFileDirectory)bygge.proj" />
     <None Include="$(MSBuildThisFileDirectory)bygge.reset.cmd" />
