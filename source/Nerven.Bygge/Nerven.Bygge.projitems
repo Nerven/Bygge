@@ -17,6 +17,7 @@
     <None Include="$(MSBuildThisFileDirectory)Assets\gitignore" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Nerven.DotSettings" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Nerven.sln.DotSettings" />
+    <None Include="$(MSBuildThisFileDirectory)Assets\pre-build.cmd" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Settings.StyleCop" />
     <None Include="$(MSBuildThisFileDirectory)bygge.proj" />
     <None Include="$(MSBuildThisFileDirectory)bygge.reset.cmd" />
