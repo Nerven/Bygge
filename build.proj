@@ -163,6 +163,7 @@
       Condition="!Exists('$(NervenSolutionDir)\output\xunit')"
       Directories="$(NervenSolutionDir)\output\xunit" />
     <xunit
+      Condition="'@(TestAssemblies->Count())' > '0'"
       Assemblies="@(TestAssemblies)"
       Xml="$(NervenSolutionDir)\output\xunit\%(TestAssemblies.Filename).xml" />
   </Target>
