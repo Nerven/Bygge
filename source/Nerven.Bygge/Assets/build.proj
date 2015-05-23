@@ -123,12 +123,58 @@
       Targets="Reset"
       Properties="NervenSolutionDir=$(NervenSolutionDir);NervenSolutionFile=$(NervenSolutionFile)" />
   </Target>
+  <Target Name="PatchAssemblyInfo">
+    <ItemGroup>
+      <NervenPatchAssemblyInfoBakRawFiles Include="$(NervenSolutionDir)\source\**\Properties\AssemblyInfo.cs.bak" />
+      <NervenPatchAssemblyInfoBakRawFiles Include="$(NervenSolutionDir)\tests\**\Properties\AssemblyInfo.cs.bak" />
+      <NervenPatchAssemblyInfoBakFiles Include="@(NervenPatchAssemblyInfoBakRawFiles)">
+        <OriginalFile>%(RootDir)%(Directory)%(Filename)</OriginalFile>
+        <BackupFile>%(FullPath)</BackupFile>
+      </NervenPatchAssemblyInfoBakFiles>
+      <NervenPatchAssemblyInfoRawFiles Include="$(NervenSolutionDir)\source\**\Properties\AssemblyInfo.cs" />
+      <NervenPatchAssemblyInfoRawFiles Include="$(NervenSolutionDir)\tests\**\Properties\AssemblyInfo.cs" />
+      <NervenPatchAssemblyInfoFiles Include="@(NervenPatchAssemblyInfoRawFiles)">
+        <OriginalFile>%(FullPath)</OriginalFile>
+        <BackupFile>%(RootDir)%(Directory)%(Filename).cs.bak</BackupFile>
+      </NervenPatchAssemblyInfoFiles>
+    </ItemGroup>
+    <Move
+      Condition="Exists('%(NervenPatchAssemblyInfoBakFiles.BackupFile)')"
+      SourceFiles="@(NervenPatchAssemblyInfoBakFiles)"
+      DestinationFiles="%(NervenPatchAssemblyInfoBakFiles.OriginalFile)" />
+    <Copy
+      Condition="Exists('%(NervenPatchAssemblyInfoFiles.OriginalFile)')"
+      SourceFiles="@(NervenPatchAssemblyInfoFiles)"
+      DestinationFiles="%(NervenPatchAssemblyInfoFiles.BackupFile)" />
+    <WriteLinesToFile
+      Lines="[assembly: AssemblyVersion(&quot;$(NervenSolutionVersion)&quot;)]"
+      Overwrite="false"
+      File="%(NervenPatchAssemblyInfoFiles.OriginalFile)" />
+  </Target>
+  <Target Name="RevertAssemblyInfoPatches">
+    <ItemGroup>
+      <NervenRevertAssemblyInfoPatchRawFiles Include="$(NervenSolutionDir)\source\**\Properties\AssemblyInfo.cs.bak" />
+      <NervenRevertAssemblyInfoPatchRawFiles Include="$(NervenSolutionDir)\tests\**\Properties\AssemblyInfo.cs.bak" />
+      <NervenRevertAssemblyInfoPatchFiles Include="@(NervenRevertAssemblyInfoPatchRawFiles)">
+        <OriginalFile>%(RootDir)%(Directory)%(Filename)</OriginalFile>
+        <BackupFile>%(FullPath)</BackupFile>
+      </NervenRevertAssemblyInfoPatchFiles>
+    </ItemGroup>
+    <Move
+      Condition="Exists('%(NervenRevertAssemblyInfoPatchFiles.BackupFile)')"
+      SourceFiles="@(NervenRevertAssemblyInfoPatchFiles)"
+      DestinationFiles="%(NervenRevertAssemblyInfoPatchFiles.OriginalFile)" />
+  </Target>
   <Target Name="Build"
     DependsOnTargets="RestoreNuget">
+    <CallTarget Targets="PatchAssemblyInfo"/>
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
       Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
       Targets="Build" />
+    <CallTarget
+      Targets="RevertAssemblyInfoPatches" />
+    <OnError ExecuteTargets="RevertAssemblyInfoPatches" />
   </Target>
   <Target Name="ExtendedClean">
     <RemoveDir
@@ -146,10 +192,14 @@
   </Target>
   <Target Name="Rebuild"
     DependsOnTargets="Clean;RestoreNuget">
+    <CallTarget Targets="PatchAssemblyInfo"/>
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
       Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
       Targets="Rebuild" />
+    <CallTarget
+      Targets="RevertAssemblyInfoPatches" />
+    <OnError ExecuteTargets="RevertAssemblyInfoPatches" />
   </Target>
   <Target Name="Test">
     <Error
