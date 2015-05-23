@@ -147,6 +147,7 @@
       SourceFiles="@(NervenPatchAssemblyInfoFiles)"
       DestinationFiles="%(NervenPatchAssemblyInfoFiles.BackupFile)" />
     <WriteLinesToFile
+      Condition="Exists('%(NervenPatchAssemblyInfoFiles.OriginalFile)')"
       Lines="[assembly: AssemblyVersion(&quot;$(NervenSolutionVersion)&quot;)]"
       Overwrite="false"
       File="%(NervenPatchAssemblyInfoFiles.OriginalFile)" />
