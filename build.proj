@@ -25,6 +25,8 @@
       Condition="$(NervenSolutionFile) == '' OR $(NervenSolutionFile) == '*Undefined*'">$(NervenSolutionDir)\$(NervenSolutionName).sln</NervenSolutionFile>
     <NervenSolutionVersion
       Condition="$(NervenSolutionVersion) == '' OR $(NervenSolutionVersion) == '*Undefined*'">0.0.0</NervenSolutionVersion>
+    <NervenSolutionAssemblyVersion
+      Condition="$(NervenSolutionAssemblyVersion) == '' OR $(NervenSolutionAssemblyVersion) == '*Undefined*'"></NervenSolutionAssemblyVersion>
     <NervenNuGetExe
       Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NuGetToolPath)</NervenNuGetExe>
     <NervenNuGetExe
@@ -148,7 +150,7 @@
       DestinationFiles="%(NervenPatchAssemblyInfoFiles.BackupFile)" />
     <WriteLinesToFile
       Condition="Exists('%(NervenPatchAssemblyInfoFiles.OriginalFile)')"
-      Lines="[assembly: AssemblyVersion(&quot;$(NervenSolutionVersion)&quot;)]"
+      Lines="[assembly: AssemblyVersion(&quot;$(NervenSolutionVersionAssemblyVersion)&quot;)]"
       Overwrite="false"
       File="%(NervenPatchAssemblyInfoFiles.OriginalFile)" />
   </Target>
@@ -168,7 +170,9 @@
   </Target>
   <Target Name="Build"
     DependsOnTargets="RestoreNuget">
-    <CallTarget Targets="PatchAssemblyInfo"/>
+    <CallTarget
+      Condition="$(NervenSolutionAssemblyVersion) != ''"
+      Targets="PatchAssemblyInfo"/>
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
       Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
@@ -193,7 +197,9 @@
   </Target>
   <Target Name="Rebuild"
     DependsOnTargets="Clean;RestoreNuget">
-    <CallTarget Targets="PatchAssemblyInfo"/>
+    <CallTarget
+      Condition="$(NervenSolutionAssemblyVersion) != ''"
+      Targets="PatchAssemblyInfo"/>
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
       Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
