@@ -66,12 +66,12 @@
             try
             {
                 if (!File.Exists(FileName))
-                   File.Move(tempFile, FileName);
+                    File.Move(tempFile, FileName);
             }
             finally
             {
-              if (File.Exists(tempFile))
-                  File.Delete(tempFile);
+                if (File.Exists(tempFile))
+                    File.Delete(tempFile);
             }
         ]]>
       </Code>
