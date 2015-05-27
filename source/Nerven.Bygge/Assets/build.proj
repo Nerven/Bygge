@@ -152,11 +152,7 @@
     DependsOnTargets="ExtendedClean;RestoreNuget">
     <ItemGroup>
       <NervenByggeBuildProj
-        Condition="$(NervenByggeVersion) == 'auto'"
         Include="$(NervenSolutionDir)\packages\Nerven.Bygge.*\build\bygge.proj" />
-      <NervenByggeBuildProj
-        Condition="$(NervenByggeVersion) != 'auto'"
-        Include="$(NervenSolutionDir)\packages\Nerven.Bygge.$(NervenByggeVersion)\build\bygge.proj" />
     </ItemGroup>
     <Error
       Condition="'@(NervenByggeBuildProj->Count())' != 1"
