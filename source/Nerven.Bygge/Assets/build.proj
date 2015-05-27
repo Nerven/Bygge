@@ -213,8 +213,7 @@
       SourceFiles="@(NervenRevertAssemblyInfoPatchFiles)"
       DestinationFiles="%(NervenRevertAssemblyInfoPatchFiles.OriginalFile)" />
   </Target>
-  <Target Name="Build"
-    DependsOnTargets="RestoreNuget">
+  <Target Name="Build">
     <CallTarget
       Condition="$(NervenSolutionAssemblyVersion) != ''"
       Targets="PatchAssemblyInfos"/>
