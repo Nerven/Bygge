@@ -31,19 +31,21 @@
       Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NuGetToolPath)</NervenNuGetExe>
     <NervenNuGetExe
       Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NervenSolutionDir)\packages\NuGet.exe</NervenNuGetExe>
-    <NervenByggeVersion
-      Condition="$(NervenByggeVersion) == '' OR $(NervenByggeVersion) == '*Undefined*'">auto</NervenByggeVersion>
-    <NervenXunitMsbuildRunnerVersion
-      Condition="$(NervenXunitMsbuildRunnerVersion) == '' OR $(NervenXunitMsbuildRunnerVersion) == '*Undefined*'">2.0.0</NervenXunitMsbuildRunnerVersion>
-    <NervenXunitMsbuildRunnerBuildDir
-      Condition="$(NervenXunitMsbuildRunnerBuildDir) == '' OR $(NervenXunitMsbuildRunnerBuildDir) == '*Undefined*'">$(NervenSolutionDir)\packages\xunit.runner.msbuild.$(NervenXunitMsbuildRunnerVersion)\build\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS</NervenXunitMsbuildRunnerBuildDir>
     <NervenTestAssembliesInclude
       Condition="$(NervenTestAssembliesInclude) == '' OR $(NervenTestAssembliesInclude) == '*Undefined*'">$(NervenSolutionDir)\tests\**\bin\$(NervenConfiguration)\$(NervenSolutionName).Tests*.dll</NervenTestAssembliesInclude>
     <NervenInstallByggeNugetPackageCommand
       Condition="$(NervenInstallByggeNugetPackageCommand) == '' OR $(NervenInstallByggeNugetPackageCommand) == '*Undefined*'">&quot;$(NervenNuGetExe)&quot; install Nerven.Bygge -pre -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallByggeNugetPackageCommand>
     <NervenInstallXunitNugetPackageCommand
-      Condition="($(NervenInstallXunitNugetPackageCommand) == '' OR $(NervenInstallXunitNugetPackageCommand) == '*Undefined*') and $(NervenByggeVersion) == 'auto'">&quot;$(NervenNuGetExe)&quot; install xunit.runner.msbuild -pre -version &quot;$(NervenXunitMsbuildRunnerVersion)&quot; -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallXunitNugetPackageCommand>
+      Condition="$(NervenInstallXunitNugetPackageCommand) == '' OR $(NervenInstallXunitNugetPackageCommand) == '*Undefined*'">&quot;$(NervenNuGetExe)&quot; install xunit.runner.msbuild -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallXunitNugetPackageCommand>
   </PropertyGroup>
+  <ItemGroup>
+    <NervenXunitMsbuildRunnerTaskPath
+      Include="$(NervenSolutionDir)\packages\xunit.runner.msbuild.*\build\*\xunit.runner.msbuild.dll" />
+  </ItemGroup>
+  <UsingTask
+    Condition="Exists('@(NervenXunitMsbuildRunnerTaskPath)')"
+    TaskName="Xunit.Runner.MSBuild.xunit"
+    AssemblyFile="@(NervenXunitMsbuildRunnerTaskPath)" />
   <!-- Inline task to bootstrap the build to enable downloading nuget.exe -->
   <!-- from https://github.com/Microsoft/msbuild/blob/master/dir.targets -->
   <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
@@ -120,9 +122,6 @@
       </Code>
     </Task>
   </UsingTask>
-  <Import
-    Condition="Exists('$(NervenXunitMsbuildRunnerBuildDir)\xunit.runner.msbuild.props')"
-    Project="$(NervenXunitMsbuildRunnerBuildDir)\xunit.runner.msbuild.props" />
   <Target Name="EchoEnvironment">
     <Message Text="NervenConfiguration: $(NervenConfiguration);" />
     <Message Text="NervenPlatform: $(NervenPlatform);" />
@@ -133,10 +132,8 @@
     <Message Text="NervenSolutionVersion: $(NervenSolutionVersion);" />
     <Message Text="NervenSolutionAssemblyVersion: $(NervenSolutionAssemblyVersion);" />
     <Message Text="NervenNuGetExe: $(NervenNuGetExe);" />
-    <Message Text="NervenByggeVersion: $(NervenByggeVersion);" />
-    <Message Text="NervenXunitMsbuildRunnerVersion: $(NervenXunitMsbuildRunnerVersion);" />
-    <Message Text="NervenXunitMsbuildRunnerBuildDir: $(NervenXunitMsbuildRunnerBuildDir);" />
     <Message Text="NervenTestAssembliesInclude: $(NervenTestAssembliesInclude);" />
+    <Message Text="NervenInstallByggeNugetPackageCommand: $(NervenInstallByggeNugetPackageCommand);" />
     <Message Text="NervenInstallXunitNugetPackageCommand: $(NervenInstallXunitNugetPackageCommand);" />
   </Target>
   <Target Name="RestoreNuget">
@@ -257,9 +254,6 @@
     <OnError ExecuteTargets="RevertAssemblyInfoPatches" />
   </Target>
   <Target Name="Test">
-    <Error
-      Condition="!Exists('$(NervenXunitMsbuildRunnerBuildDir)\xunit.runner.msbuild.props')"
-      Text="Missing xUnit MSBuild runner" />
     <ItemGroup>
       <TestAssemblies
         Include="$(NervenTestAssembliesInclude)" />
