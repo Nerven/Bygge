@@ -23,10 +23,6 @@
       Condition="$(NervenSolutionName) == '' OR $(NervenSolutionName) == '*Undefined*'">$(MSBuildProjectName)</NervenSolutionName>
     <NervenSolutionFile
       Condition="$(NervenSolutionFile) == '' OR $(NervenSolutionFile) == '*Undefined*'">$(NervenSolutionDir)\$(NervenSolutionName).sln</NervenSolutionFile>
-    <NervenSolutionVersion
-      Condition="$(NervenSolutionVersion) == '' OR $(NervenSolutionVersion) == '*Undefined*'">0.0.0</NervenSolutionVersion>
-    <NervenSolutionAssemblyVersion
-      Condition="$(NervenSolutionAssemblyVersion) == '' OR $(NervenSolutionAssemblyVersion) == '*Undefined*'">auto</NervenSolutionAssemblyVersion>
     <NervenNuGetExe
       Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NuGetToolPath)</NervenNuGetExe>
     <NervenNuGetExe
@@ -37,13 +33,25 @@
       Condition="$(NervenTestAssembliesInclude) == '' OR $(NervenTestAssembliesInclude) == '*Undefined*'">$(NervenSolutionDir)\tests\**\bin\$(NervenConfiguration)\$(NervenSolutionName).Tests*.dll</NervenTestAssembliesInclude>
     <NervenInstallByggeNugetPackageCommand
       Condition="$(NervenInstallByggeNugetPackageCommand) == '' OR $(NervenInstallByggeNugetPackageCommand) == '*Undefined*'">&quot;$(NervenNuGetExe)&quot; install Nerven.Bygge -pre -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallByggeNugetPackageCommand>
+    <NervenInstallGitVersionTaskNugetPackageCommand
+      Condition="$(NervenInstallGitVersionTaskNugetPackageCommand) == '' OR $(NervenInstallGitVersionTaskNugetPackageCommand) == '*Undefined*'">&quot;$(NervenNuGetExe)&quot; install GitVersionTask -pre -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallGitVersionTaskNugetPackageCommand>
     <NervenInstallXunitNugetPackageCommand
       Condition="$(NervenInstallXunitNugetPackageCommand) == '' OR $(NervenInstallXunitNugetPackageCommand) == '*Undefined*'">&quot;$(NervenNuGetExe)&quot; install xunit.runner.msbuild -outputdirectory &quot;$(NervenSolutionDir)\packages&quot;</NervenInstallXunitNugetPackageCommand>
   </PropertyGroup>
   <ItemGroup>
+    <NervenGitVersionTaskGitVersionTaskPath
+      Include="$(NervenSolutionDir)\packages\GitVersionTask.*\GitVersionTask.dll" />
     <NervenXunitMsbuildRunnerTaskPath
       Include="$(NervenSolutionDir)\packages\xunit.runner.msbuild.*\build\*\xunit.runner.msbuild.dll" />
   </ItemGroup>
+  <UsingTask
+    Condition="Exists('@(NervenGitVersionTaskGitVersionTaskPath)')"
+    TaskName="GitVersionTask.WriteVersionInfoToBuildLog"
+    AssemblyFile="@(NervenGitVersionTaskGitVersionTaskPath)" />
+  <UsingTask
+    Condition="Exists('@(NervenGitVersionTaskGitVersionTaskPath)')"
+    TaskName="GitVersionTask.GetVersion"
+    AssemblyFile="@(NervenGitVersionTaskGitVersionTaskPath)" />
   <UsingTask
     Condition="Exists('@(NervenXunitMsbuildRunnerTaskPath)')"
     TaskName="Xunit.Runner.MSBuild.xunit"
@@ -81,32 +89,12 @@
       </Code>
     </Task>
   </UsingTask>
-  <UsingTask TaskName="GetAssemblyVersionFromBuildVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+  <UsingTask TaskName="UpdateAssemblyInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
-      <BuildVersion ParameterType="System.String" Required="true"/>
-      <AssemblyVersion ParameterType="System.String" Output="true" />
-    </ParameterGroup>
-    <Task>
-      <Reference Include="System" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
-            var buildVersion = (BuildVersion ?? string.Empty);
-            var majorEndsPosition = buildVersion.IndexOf('.');
-            var majorString = majorEndsPosition == -1 ? buildVersion : buildVersion.Substring(0, majorEndsPosition);
-            int major;
-            if (string.IsNullOrEmpty(majorString) || !int.TryParse(majorString, out major)) {
-                major = 0;
-            }
-
-            AssemblyVersion = new Version(major, 0, 0, 0).ToString();
-        ]]>
-      </Code>
-    </Task>
-  </UsingTask>
-  <UsingTask TaskName="PatchAssemblyInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
-    <ParameterGroup>
-      <AssemblyVersion ParameterType="System.String" Required="true"/>
       <FileName ParameterType="System.String" Required="true" />
+      <AssemblyVersion ParameterType="System.String" />
+      <AssemblyFileVersion ParameterType="System.String" />
+      <AssemblyInformationalVersion ParameterType="System.String" />
     </ParameterGroup>
     <Task>
       <Reference Include="System" />
@@ -114,12 +102,20 @@
       <Reference Include="System.Linq" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
-            var lines = File
+            File.WriteAllLines(FileName, File
                 .ReadAllLines(FileName)
-                .Where(line => !line.Replace(" ", "").StartsWith("[assembly:AssemblyInfo(", StringComparison.Ordinal))
-                .ToList();
-            lines.Add("[assembly: AssemblyVersion(\"" + AssemblyVersion + "\")]");
-            File.WriteAllLines(FileName, lines.ToArray());
+                .Where(line => !line.Replace(" ", "").StartsWith("[assembly:AssemblyVersion(", StringComparison.Ordinal))
+                .Where(line => !line.Replace(" ", "").StartsWith("[assembly:AssemblyFileVersion(", StringComparison.Ordinal))
+                .Where(line => !line.Replace(" ", "").StartsWith("[assembly:AssemblyInformationalVersion(", StringComparison.Ordinal))
+                .Concat(new []
+                    {
+                        string.IsNullOrEmpty(AssemblyVersion) ? null : ("[assembly: AssemblyVersion(\"" + AssemblyVersion + "\")]"),
+                        string.IsNullOrEmpty(AssemblyFileVersion) ? null : ("[assembly: AssemblyFileVersion(\"" + AssemblyFileVersion + "\")]"),
+                        string.IsNullOrEmpty(AssemblyInformationalVersion) ? null : ("[assembly: AssemblyInformationalVersion(\"" + AssemblyInformationalVersion + "\")]"),
+                        string.Empty,
+                    }
+                    .Where(line => line != null))
+                .ToArray());
         ]]>
       </Code>
     </Task>
@@ -131,11 +127,10 @@
     <Message Text="NervenSolutionDir: $(NervenSolutionDir);" />
     <Message Text="NervenSolutionName: $(NervenSolutionName);" />
     <Message Text="NervenSolutionFile: $(NervenSolutionFile);" />
-    <Message Text="NervenSolutionVersion: $(NervenSolutionVersion);" />
-    <Message Text="NervenSolutionAssemblyVersion: $(NervenSolutionAssemblyVersion);" />
     <Message Text="NervenNuGetExe: $(NervenNuGetExe);" />
     <Message Text="NervenTestAssembliesInclude: $(NervenTestAssembliesInclude);" />
     <Message Text="NervenInstallByggeNugetPackageCommand: $(NervenInstallByggeNugetPackageCommand);" />
+    <Message Text="NervenInstallGitVersionTaskNugetPackageCommand: $(NervenInstallGitVersionTaskNugetPackageCommand);" />
     <Message Text="NervenInstallXunitNugetPackageCommand: $(NervenInstallXunitNugetPackageCommand);" />
   </Target>
   <Target Name="RestoreNuget">
@@ -145,6 +140,8 @@
       Address="https://nuget.org/nuget.exe" />
     <Exec
       Command="$(NervenInstallByggeNugetPackageCommand)" />
+    <Exec
+      Command="$(NervenInstallGitVersionTaskNugetPackageCommand)" />
     <Exec
       Command="$(NervenInstallXunitNugetPackageCommand)" />
     <Exec
@@ -179,11 +176,6 @@
         <BackupFile>%(RootDir)%(Directory)%(Filename).cs.bak</BackupFile>
       </NervenPatchAssemblyInfoFiles>
     </ItemGroup>
-    <GetAssemblyVersionFromBuildVersion
-      Condition="$(NervenSolutionAssemblyVersion) == 'auto'"
-      BuildVersion="$(NervenSolutionVersion)">
-      <Output PropertyName="NervenSolutionAssemblyVersion" TaskParameter="AssemblyVersion" />
-    </GetAssemblyVersionFromBuildVersion>
     <Move
       Condition="Exists('%(NervenPatchAssemblyInfoBakFiles.BackupFile)')"
       SourceFiles="@(NervenPatchAssemblyInfoBakFiles)"
@@ -192,10 +184,38 @@
       Condition="Exists('%(NervenPatchAssemblyInfoFiles.OriginalFile)')"
       SourceFiles="@(NervenPatchAssemblyInfoFiles)"
       DestinationFiles="%(NervenPatchAssemblyInfoFiles.BackupFile)" />
-    <PatchAssemblyInfo
+    <WriteVersionInfoToBuildLog
+      SolutionDirectory="$(NervenSolutionDir)" />
+    <GetVersion SolutionDirectory="$(NervenSolutionDir)">
+      <Output TaskParameter="Major" PropertyName="GfvMajor" />
+      <Output TaskParameter="Minor" PropertyName="GfvMinor" />
+      <Output TaskParameter="Patch" PropertyName="GfvPatch" />
+      <Output TaskParameter="BuildMetaData" PropertyName="GfvBuildMetaData" />
+      <Output TaskParameter="FullBuildMetaData" PropertyName="GfvFullBuildMetaData" />
+      <Output TaskParameter="BranchName" PropertyName="GfvBranchName" />
+      <Output TaskParameter="Sha" PropertyName="GfvSha" />
+      <Output TaskParameter="MajorMinorPatch" PropertyName="GfvMajorMinorPatch" />
+      <Output TaskParameter="SemVer" PropertyName="GfvSemVer" />
+      <Output TaskParameter="LegacySemVer" PropertyName="GfvLegacySemVer" />
+      <Output TaskParameter="LegacySemVerPadded" PropertyName="GfvLegacySemVerPadded" />
+      <Output TaskParameter="FullSemVer" PropertyName="GfvFullSemVer" />
+      <Output TaskParameter="AssemblySemVer" PropertyName="GfvAssemblySemVer" />
+      <Output TaskParameter="NuGetVersion" PropertyName="GfvNuGetVersion" />
+      <Output TaskParameter="PreReleaseTag" PropertyName="GfvPreReleaseTag" />
+      <Output TaskParameter="PreReleaseTagWithDash" PropertyName="GfvPreReleaseTagWithDash" />
+      <Output TaskParameter="InformationalVersion" PropertyName="GfvInformationalVersion" />
+    </GetVersion>
+    <Message Text="SemVer: $(GfvSemVer)" />
+    <Message Text="FullSemVer: $(GfvFullSemVer)" />
+    <Message Text="AssemblySemVer: $(GfvAssemblySemVer)" />
+    <Message Text="NuGetVersion: $(GfvNuGetVersion)" />
+    <Message Text="InformationalVersion: $(GfvInformationalVersion)" />
+    <UpdateAssemblyInfo
       Condition="Exists('%(NervenPatchAssemblyInfoFiles.OriginalFile)')"
-      AssemblyVersion="$(NervenSolutionAssemblyVersion)"
-      FileName="%(NervenPatchAssemblyInfoFiles.OriginalFile)" />
+      FileName="%(NervenPatchAssemblyInfoFiles.OriginalFile)"
+      AssemblyVersion="$(GfvAssemblySemVer)"
+      AssemblyFileVersion="$(GfvMajorMinorPatch).0"
+      AssemblyInformationalVersion="$(GfvInformationalVersion)" />
   </Target>
   <Target Name="RevertAssemblyInfoPatches">
     <ItemGroup>
@@ -213,8 +233,7 @@
   </Target>
   <Target Name="Build">
     <CallTarget
-      Condition="$(NervenSolutionAssemblyVersion) != ''"
-      Targets="PatchAssemblyInfos"/>
+      Targets="PatchAssemblyInfos" />
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
       Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
@@ -240,8 +259,7 @@
   <Target Name="Rebuild"
     DependsOnTargets="Clean;RestoreNuget">
     <CallTarget
-      Condition="$(NervenSolutionAssemblyVersion) != ''"
-      Targets="PatchAssemblyInfos"/>
+      Targets="PatchAssemblyInfos" />
     <MSBuild BuildInParallel="true"
       Projects="$(NervenSolutionFile)"
       Properties="Configuration=$(NervenConfiguration);Platform=$(NervenPlatform);RestorePackages=false;TreatWarningsAsErrors=true"
@@ -263,7 +281,8 @@
       Assemblies="@(TestAssemblies)"
       Xml="$(NervenSolutionDir)\output\xunit\%(TestAssemblies.Filename).xml" />
   </Target>
-  <Target Name="PackNuget">
+  <Target Name="PackNuget"
+    DependsOnTargets="Build">
     <ItemGroup>
       <NervenNugetSpecFiles Include="$(NervenSolutionDir)\source\**\*.nuspec;" />
       <NervenNugetPackEntryFiles Include="@(NervenNugetSpecFiles)">
@@ -278,7 +297,7 @@
       Directories="$(NervenSolutionDir)\output\nuget" />
     <Exec
       Condition="'@(NervenNugetPackEntryFiles->Count())' > '0'"
-      Command="&quot;$(NervenNuGetExe)&quot; pack &quot;%(NervenNugetPackEntryFiles.PackFile)&quot; -NonInteractive -IncludeReferencedProjects -NoDefaultExcludes -Symbols -Properties &quot;Configuration=$(NervenConfiguration);Platform=$(NervenPlatformForNuget)&quot; -OutputDirectory &quot;$(NervenSolutionDir)\output\nuget\ &quot; -Version $(NervenSolutionVersion)" />
+      Command="&quot;$(NervenNuGetExe)&quot; pack &quot;%(NervenNugetPackEntryFiles.PackFile)&quot; -NonInteractive -IncludeReferencedProjects -NoDefaultExcludes -Symbols -Properties &quot;Configuration=$(NervenConfiguration);Platform=$(NervenPlatformForNuget)&quot; -OutputDirectory &quot;$(NervenSolutionDir)\output\nuget\ &quot; -Version $(GfvNuGetVersion)" />
   </Target>
   <Target Name="Complete"
     DependsOnTargets="Clean;Build;Test;PackNuget" />
