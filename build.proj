@@ -30,6 +30,8 @@
     <NervenNuGetExe
       Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NuGetToolPath)</NervenNuGetExe>
     <NervenNuGetExe
+      Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NuGet)</NervenNuGetExe>
+    <NervenNuGetExe
       Condition="$(NervenNuGetExe) == '' OR $(NervenNuGetExe) == '*Undefined*'">$(NervenSolutionDir)\packages\NuGet.exe</NervenNuGetExe>
     <NervenTestAssembliesInclude
       Condition="$(NervenTestAssembliesInclude) == '' OR $(NervenTestAssembliesInclude) == '*Undefined*'">$(NervenSolutionDir)\tests\**\bin\$(NervenConfiguration)\$(NervenSolutionName).Tests*.dll</NervenTestAssembliesInclude>
