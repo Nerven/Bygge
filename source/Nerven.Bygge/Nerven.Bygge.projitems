@@ -15,6 +15,7 @@
     <None Include="$(MSBuildThisFileDirectory)Assets\build.proj" />
     <None Include="$(MSBuildThisFileDirectory)Assets\build.test.cmd" />
     <None Include="$(MSBuildThisFileDirectory)Assets\gitignore" />
+    <None Include="$(MSBuildThisFileDirectory)Assets\GitVersionConfig.yaml" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Nerven.DotSettings" />
     <None Include="$(MSBuildThisFileDirectory)Assets\Nerven.sln.DotSettings" />
     <None Include="$(MSBuildThisFileDirectory)Assets\pre-build.cmd" />
