@@ -7,7 +7,7 @@ platform: Any CPU
 build_script:
 - pre-build.cmd
 - build.cmd Complete
-- appveyor UpdateBuild -Version "%GfvFullSemVer%+Build.appveyor%APPVEYOR_BUILD_NUMBER%"
+- appveyor UpdateBuild -Version "%NERVENFULLVERSION_OUTPUT%+Build.appveyor%APPVEYOR_BUILD_NUMBER%"
 test_script:
 - ps: >-
     $webClient = New-Object 'System.Net.WebClient'

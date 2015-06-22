@@ -210,6 +210,7 @@
     <Message Text="AssemblySemVer: $(GfvAssemblySemVer)" />
     <Message Text="NuGetVersion: $(GfvNuGetVersion)" />
     <Message Text="InformationalVersion: $(GfvInformationalVersion)" />
+    <Exec Command="set NERVENFULLVERSION_OUTPUT=$(GfvFullSemVer)"/>
     <UpdateAssemblyInfo
       Condition="Exists('%(NervenPatchAssemblyInfoFiles.OriginalFile)')"
       FileName="%(NervenPatchAssemblyInfoFiles.OriginalFile)"
