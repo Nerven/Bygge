@@ -186,7 +186,9 @@
       DestinationFiles="%(NervenPatchAssemblyInfoFiles.BackupFile)" />
     <WriteVersionInfoToBuildLog
       SolutionDirectory="$(NervenSolutionDir)" />
-    <GetVersion SolutionDirectory="$(NervenSolutionDir)">
+    <GetVersion
+      SolutionDirectory="$(NervenSolutionDir)"
+      NoFetch="true">
       <Output TaskParameter="Major" PropertyName="GfvMajor" />
       <Output TaskParameter="Minor" PropertyName="GfvMinor" />
       <Output TaskParameter="Patch" PropertyName="GfvPatch" />
