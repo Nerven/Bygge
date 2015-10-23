@@ -8,7 +8,7 @@
     <owners>Nerven</owners>
     <projectUrl>https://nerven.se/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Nerven.Bygge</description>
+    <description>A lightweight "drop in" build solution for .NET projects, using MSBuild.</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright © Victor Blomberg &lt;victor.blomberg@nerven.se&gt; and contributors.</copyright>
     <tags></tags>
